@@ -4,6 +4,14 @@ a, a:hover {
   font-weight: 500;
 }
 
+.p, p {
+  margin-bottom: 0px;
+}
+
+.hover:hover {
+  background-color: #e3e3e3;
+}
+
 body {
   margin: 0;
   font-size: 13px;

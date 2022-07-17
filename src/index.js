@@ -5,7 +5,14 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
-import UserState from './context/userContext';
+import UserState from './helpers/userContext';
+import { defaultAppState } from './helpers/constants';
+
+
+if(!window.localStorage.getItem('app')) {
+  window.localStorage.setItem('app', JSON.stringify(defaultAppState));
+  window.location.reload();
+}
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
