@@ -16,7 +16,7 @@ function App() {
   const { user, networks } = appState.state;
   const activeNetwork = networks.find(x => x.selected);
 
-  return (<div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '650px', overflow: 'hidden' }}>
+  return (<div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '650px', overflowY:'scroll' }}>
     <section className="body">
       {/* header */}
       <div className="d-flex align-items-center justify-content-between" style={{ backgroundColor: '#f2f4f6', padding: '1rem' }}>

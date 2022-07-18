@@ -16,6 +16,7 @@ export default function Home({ value: appState }) {
   const [key, setKey] = React.useState('assets');
   const [accountBalance, setBalance] = React.useState(0);
   const [usdBalance, setUSDBalance] = React.useState(0.00);
+  const [tokens, setTokens] = React.useState([]);
   const [viewAccount, toggleViewAccount] = React.useState(false);
   const [newToken, toggleNewToken] = React.useState(false);
 
@@ -38,6 +39,34 @@ export default function Home({ value: appState }) {
     })
     // }, 5000);
   })
+
+  React.useEffect(() => {
+    let tokens = [...activeAccount.tokens]
+    if (tokens.length > 0) {
+      let provider = new ethers.providers.JsonRpcProvider(activeNetwork.rpcProvider);
+      let compTokens = tokens.map(async (token, idx) => {
+        try {
+          const bscscanApiKey = 'Q7QXTMXCWNJ7HK742I6WG77VUNEIRH12UA';
+          const params = new URLSearchParams('apiKey=' + bscscanApiKey);
+          params.append('module', 'contract')
+          params.append('action', 'getabi')
+          params.append('address', token.contractAddress);
+          let fetchData = await fetch(`https://api.bscscan.com/api?${params}`);
+          let response = await fetchData.json();
+          if (response.status === '1') {
+            const abi = JSON.parse(response.result)
+            let erc20 = new ethers.Contract(token.contractAddress, abi, provider)
+            let balance = await erc20.balanceOf(activeAccount.address);
+            return { index: idx, token, erc20, balance: balance || 0.01 };
+          } else throw new Error(response.result)
+        } catch (error) {
+          alert(`Error occurred, could not load token: ${error.message}`)
+          return null;
+        }
+      })
+      setTokens(compTokens);
+    }
+  }, [activeAccount, activeNetwork])
 
   return (<React.Fragment>
     <div className="d-flex align-items-center justify-content-between">
@@ -112,7 +141,7 @@ export default function Home({ value: appState }) {
       </div>
       <Tab.Content className="pt-3">
         <Tab.Pane eventKey="assets">
-          <div className="d-flex align-items-center justify-content-between" style={{ padding: '10px 5px' }}>
+          <div className="d-flex align-items-center justify-content-between" style={{ padding: '5px 5px' }}>
             <div className="d-flex align-items-center gap-3">
               <Avatar value={activeNetwork.symbol} size="40px" className="rounded-pill" />
               <div className="d-block">
@@ -122,23 +151,22 @@ export default function Home({ value: appState }) {
             </div>
             <ion-icon name="chevron-forward-outline"></ion-icon>
           </div>
-          <hr />
-          {activeAccount.tokens.map((item, idx) => <React.Fragment key={idx}>
+          <hr className="m-1" />
+          {tokens.map((item, idx) => item.index ? <React.Fragment key={idx}>
             <div className="d-flex align-items-center justify-content-between" style={{ padding: '10px 5px' }}>
               <div className="d-flex align-items-center gap-3">
-                <Avatar value={item.symbol} size="40px" className="rounded-pill" />
+                <Avatar value={item?.token?.symbol} size="40px" className="rounded-pill" />
                 <div className="d-block">
-                  {/* TODO: add balances and usd */}
-                  <h6 className="m-0">0.0 {item.symbol}</h6>
+                  <h6 className="m-0">{item?.balance} {item?.token?.symbol}</h6>
                 </div>
               </div>
               <ion-icon name="chevron-forward-outline"></ion-icon>
             </div>
-            <hr />
-          </React.Fragment>)}
+            <hr className="m-1" />
+          </React.Fragment> : null)}
           <div className="pt-3 text-center">
             <p className="m-0">Don't see your token?</p>
-            <p className="m-0"><a>Refresh List</a> or <strong onClick={() => toggleNewToken(true)}>import token</strong></p>
+            <p className="m-0"><strong className="text-primary" onClick={() => window.location.reload()}>Refresh List</strong> or <strong className="text-primary" onClick={() => toggleNewToken(true)}>import token</strong></p>
           </div>
         </Tab.Pane>
         <Tab.Pane eventKey="activity">
